@@ -1,9 +1,10 @@
 #!/bin/sh
 
-printf "Compile sources\n"
-mkdir bin
-javac ./src/PartyPictures.java -d ./bin
+echo -n "Compile? [y/n]: "
+read  COMPILE
+case $COMPILE in
+[yY])printf "Compile sources\n";mkdir bin;javac ./src/PartyPictures.java -d ./bin;;
+esac
 
-#unclutter &
-
+echo -n "Starting..."
 java -cp ./bin PartyPictures
