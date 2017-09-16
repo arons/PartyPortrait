@@ -13,8 +13,10 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Random;
 
 import javax.swing.JFrame;
@@ -26,6 +28,9 @@ public class PartyPictures extends JFrame {
 
 	// hard coded config
 	private static boolean FULLSCREEN = true;
+	
+	private static final String fileNamePatter = "yyyy_MM_dd_HHmmss";
+	private static final String fileExt = ".jpg";
 
 	private Image full = null;
 	private Image[][] saver = new Image[3][3];
@@ -119,19 +124,84 @@ public class PartyPictures extends JFrame {
 	}
 
 	private class ExitOnMouseClickListener extends MouseAdapter {
-
 		public void mouseClicked(MouseEvent e) {
 			System.exit(0);
 		}
 	}
+	
+	
+	/**
+	 * 
+	 *
+	 */
+	private class PhotoThread implements Runnable{
+		
+		public void run() {
+			
+			synchronized (syncObj) {
+				running = true;
+			} 
+			
+			SimpleDateFormat df = new SimpleDateFormat(fileNamePatter);
+			String filename = df.format(new Date()) + fileExt;
+			System.out.println("Filename:" + filename);
+			try {
+				Process p = Runtime.getRuntime().exec("gphoto2 --capture-image-and-download --filename=" + filename);
+				p.waitFor();
+				
+				full = Toolkit.getDefaultToolkit().getImage(filename);
+				full = full.getScaledInstance(getWidth(), -1, Image.SCALE_FAST);
+				
+			} catch (IOException ex) {
+				ex.printStackTrace();
+			} catch (java.lang.InterruptedException ex) {
+				System.out.println(ex.getMessage());
+			} finally {
+				
+				synchronized (syncObj) {
+					running = false;
+				} 
+				
+				init(saver);
+				repaint();
 
+				// randomize and initialize random files
+				File f = new File(".");
+				randomPictures = f.list(new FilenameFilter() {
+
+					@Override
+					public boolean accept(File dir, String name) {
+						return name.endsWith(fileExt);
+					}
+				});
+
+				Collections.shuffle(Arrays.asList(randomPictures), r);
+				Collections.shuffle(Arrays.asList(randomOrder), r);
+
+				saverTimer.start();
+			}
+		}
+
+		public void init(Image[][] in) {
+			for (int i = 0; i < in.length; i++) {
+				for (int j = 0; j < in[i].length; j++) {
+					in[i][j] = null;
+				}
+			}
+		}
+	}
+
+	/**
+	 *
+	 */
 	private class TakePhotoOnKeyListener extends KeyAdapter {
-
+		
 		public void keyReleased(KeyEvent e) {
 			System.out.println("Key event received: " + e);
 			if(e.getKeyChar() == 'e'){
 				System.exit(0);
 			}
+			
 			synchronized (syncObj) {
 				if (running) {
 					return;
@@ -140,60 +210,8 @@ public class PartyPictures extends JFrame {
 
 			saverTimer.stop();
 
-			new Thread(new Runnable() {
-				public void run() {
-					
-					synchronized (syncObj) {
-						running = true;
-					} 
-					
-
-					String filename = System.currentTimeMillis() + ".JPG";
-					System.out.println("Filename:" + filename);
-					try {
-						Process p = Runtime.getRuntime()
-								.exec("gphoto2 --capture-image-and-download --filename=" + filename);
-						p.waitFor();
-						full = Toolkit.getDefaultToolkit().getImage(filename);
-						full = full.getScaledInstance(getWidth(), -1, Image.SCALE_FAST);
-					} catch (IOException ex) {
-						ex.printStackTrace();
-					} catch (java.lang.InterruptedException ex) {
-						System.out.println(ex.getMessage());
-					} finally {
-						
-						synchronized (syncObj) {
-							running = false;
-						} 
-						
-						init(saver);
-						repaint();
-
-						// randomize and initialize random files
-						File f = new File(".");
-						randomPictures = f.list(new FilenameFilter() {
-
-							@Override
-							public boolean accept(File dir, String name) {
-								return name.endsWith(".JPG");
-							}
-						});
-
-						Collections.shuffle(Arrays.asList(randomPictures), r);
-						Collections.shuffle(Arrays.asList(randomOrder), r);
-
-						saverTimer.start();
-					}
-				}
-
-				public void init(Image[][] in) {
-					for (int i = 0; i < in.length; i++) {
-						for (int j = 0; j < in[i].length; j++) {
-							in[i][j] = null;
-						}
-					}
-				}
-			}).start();
+			PhotoThread pt = new PhotoThread();
+			new Thread( pt ).start();
 		}
 	}
 }
