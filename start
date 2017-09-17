@@ -1,10 +1,6 @@
 #!/bin/sh
-
-echo -n "Compile? [y/n]: "
-read  COMPILE
-case $COMPILE in
-[yY])printf "Compile sources\n";mkdir bin;javac ./src/PartyPictures.java -d ./bin;;
-esac
-
-echo -n "Starting..."
-java -cp ./bin PartyPictures
+while true; do
+  echo -n "Starting..."
+  java -cp ./bin PartyPictures
+  sleep 5
+done

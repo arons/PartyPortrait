@@ -160,25 +160,27 @@ public class PartyPictures extends JFrame {
 				
 				synchronized (syncObj) {
 					running = false;
+					
+					init(saver);
+					repaint();
+
+					// randomize and initialize random files
+					File f = new File(".");
+					randomPictures = f.list(new FilenameFilter() {
+
+						@Override
+						public boolean accept(File dir, String name) {
+							return name.endsWith(fileExt);
+						}
+					});
+
+					Collections.shuffle(Arrays.asList(randomPictures), r);
+					Collections.shuffle(Arrays.asList(randomOrder), r);
+
+					saverTimer.start();
 				} 
 				
-				init(saver);
-				repaint();
-
-				// randomize and initialize random files
-				File f = new File(".");
-				randomPictures = f.list(new FilenameFilter() {
-
-					@Override
-					public boolean accept(File dir, String name) {
-						return name.endsWith(fileExt);
-					}
-				});
-
-				Collections.shuffle(Arrays.asList(randomPictures), r);
-				Collections.shuffle(Arrays.asList(randomOrder), r);
-
-				saverTimer.start();
+				
 			}
 		}
 
@@ -206,12 +208,12 @@ public class PartyPictures extends JFrame {
 				if (running) {
 					return;
 				}
+				saverTimer.stop();
+				PhotoThread pt = new PhotoThread();
+				new Thread( pt ).start();
 			} 
 
-			saverTimer.stop();
-
-			PhotoThread pt = new PhotoThread();
-			new Thread( pt ).start();
+			
 		}
 	}
 }
