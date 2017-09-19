@@ -54,7 +54,10 @@ public class PartyPictures extends JFrame {
 	}
 
 	private Status status = Status.MESSAGE_DISPLAY;
-	private String message = "Starting...";
+	private final static String M_STARTING = "Starting...";
+	private final static String M_LAUGH = "Sorridi!";
+	private final static String M_WAIT = "...aspetta...";
+	private String message = M_STARTING;
 
 	private static Object syncObj = new Object();
 
@@ -185,9 +188,7 @@ public class PartyPictures extends JFrame {
 			synchronized (syncObj) {
 				running = true;
 			}
-			message = "Sorridi";
-			status = Status.MESSAGE_DISPLAY;
-			repaint();
+			
 			
 
 			SimpleDateFormat df = new SimpleDateFormat(fileNamePatter);
@@ -195,7 +196,13 @@ public class PartyPictures extends JFrame {
 			System.out.println("Filename:" + filename);
 			try {
 				Process p = Runtime.getRuntime().exec("gphoto2 --capture-image-and-download --filename=" + filename);
-				message = "...aspetta...";
+				message = M_LAUGH;
+				status = Status.MESSAGE_DISPLAY;
+				repaint();
+				
+				try { Thread.sleep(1000); } catch (InterruptedException ei) { }
+				
+				message = M_WAIT;
 				repaint();
 				p.waitFor();
 
@@ -206,10 +213,7 @@ public class PartyPictures extends JFrame {
 				e.printStackTrace();
 				message = "Error:"+e.getMessage();
 				repaint();
-				try {
-					Thread.sleep(2000);
-				} catch (InterruptedException e1) {
-				}
+				try { Thread.sleep(2000); } catch (InterruptedException ei) { }
 			} finally {
 
 				synchronized (syncObj) {
