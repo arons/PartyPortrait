@@ -197,8 +197,8 @@ public class PartyPictures extends JFrame {
 	 *
 	 */
 	private class TakePhotoOnKeyListener extends KeyAdapter {
-		
-		public void keyReleased(KeyEvent e) {
+		@Override
+		public void keyPressed(KeyEvent e) {
 			System.out.println("Key event received: " + e);
 			if(e.getKeyChar() == 'e'){
 				System.exit(0);
