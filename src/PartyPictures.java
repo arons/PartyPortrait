@@ -200,7 +200,7 @@ public class PartyPictures extends JFrame {
 				status = Status.MESSAGE_DISPLAY;
 				repaint();
 				
-				try { Thread.sleep(1000); } catch (InterruptedException ei) { }
+				try { Thread.sleep(2000); } catch (InterruptedException ei) { }
 				
 				message = M_WAIT;
 				repaint();
