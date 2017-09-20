@@ -55,8 +55,13 @@ public class PartyPictures extends JFrame {
 
 	private Status status = Status.MESSAGE_DISPLAY;
 	private final static String M_STARTING = "Starting...";
+
 	private final static String M_LAUGH = "Sorridi!";
 	private final static String M_WAIT = "...aspetta...";
+	
+//	private final static String M_LAUGH = "Птичица!";
+//	private final static String M_WAIT = "...причекајте...";
+	
 	private String message = M_STARTING;
 
 	private static Object syncObj = new Object();
