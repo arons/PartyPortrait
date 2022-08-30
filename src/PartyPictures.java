@@ -60,7 +60,7 @@ public class PartyPictures extends JFrame {
 	private final static String M_STARTING = "Starting...";
 
 	private final static String M_LAUGH = "Sorridi!";
-	private final static String M_WAIT = "...aspetta...";
+	private final static String M_WAIT = "...un attimo...e...";
 	
 //	private final static String M_LAUGH = "Ptičica!";
 //	private final static String M_WAIT = "...pričekaj...";
