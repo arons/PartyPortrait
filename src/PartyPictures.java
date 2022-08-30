@@ -32,7 +32,7 @@ public class PartyPictures extends JFrame {
 	static final long serialVersionUID = 1;
 
 	// hard coded config
-	private static boolean FULLSCREEN = true;
+	private static boolean FULLSCREEN = false;
 
 	private static final String fileNamePatter = "yyyy_MM_dd_HHmmss";
 	private static final String fileExt = ".jpg";
@@ -70,11 +70,13 @@ public class PartyPictures extends JFrame {
 	
 
 	public static void main(String[] args) throws Exception {
+		System.out.println("Starting Party Pictures");
 		new PartyPictures();
 	}
 
 	// Class constructor
 	private PartyPictures() throws MalformedURLException {
+		
 		photoDir = new File("photos");
 		if(!photoDir.exists()) {
 			photoDir.mkdirs();
@@ -102,6 +104,8 @@ public class PartyPictures extends JFrame {
 		}
 
 		saverTimer.start();
+		initObject();
+		System.out.println("running...");
 	}
 
 	public void paint(Graphics g) {
@@ -160,27 +164,39 @@ public class PartyPictures extends JFrame {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
+			
 			if (randomPictures == null) return; 
 			if (randomPictures.length <= 0) return; 
 			
+			
 			String filename = randomPictures[nextPicture++];
-
+			System.out.println("[UpdateSaver] filename:"+filename);
+			
+			File file = new File(photoDir, filename);
+			
 			int[] pos = randomOrder[nextPosition++];
 			int x = pos[0];
 			int y = pos[1];
-
+ 
 			if (nextPicture >= randomPictures.length)
 				nextPicture = 0;
 
 			if (nextPosition >= randomOrder.length)
 				nextPosition = 0;
 
-			Image img = Toolkit.getDefaultToolkit().getImage(filename);
+			Image img = Toolkit.getDefaultToolkit().getImage(file.getAbsolutePath());
+			
+			if(Math.random() > 0.9) {
+				full = img.getScaledInstance(getWidth(), -1, Image.SCALE_FAST);
+				status = Status.FULL_PHOTO;
+			}else {
+				img = img.getScaledInstance(getWidth() / saver.length, getHeight() / saver[x].length, Image.SCALE_FAST);
+				saver[x][y] = img;
+				full = null;
+				status = Status.RANDOM_COLLAGE;
+			}
 
-			img = img.getScaledInstance(getWidth() / saver.length, getHeight() / saver[x].length, Image.SCALE_FAST);
-			saver[x][y] = img;
-			full = null;
-			status = Status.RANDOM_COLLAGE;
+			
 			repaint();
 		}
 
@@ -191,6 +207,38 @@ public class PartyPictures extends JFrame {
 			System.exit(0);
 		}
 	}
+	
+	public void init(Image[][] in) {
+		for (int i = 0; i < in.length; i++) {
+			for (int j = 0; j < in[i].length; j++) {
+				in[i][j] = null;
+			}
+		}
+	}
+	private void initObject() {
+		System.out.println("initObject");
+		synchronized (syncObj) {
+			running = false;
+			init(saver);
+			status = Status.FULL_PHOTO;
+			repaint();
+
+			// randomize and initialize random files
+			randomPictures = photoDir.list(new FilenameFilter() {
+				@Override
+				public boolean accept(File dir, String name) {
+					return name.endsWith(fileExt);
+				}
+			});
+
+			Collections.shuffle(Arrays.asList(randomPictures), r);
+			Collections.shuffle(Arrays.asList(randomOrder), r);
+
+			saverTimer.start();
+			
+			System.out.println("randomPictures size:"+randomPictures.length);
+		}
+	}
 
 	/**
 	 * 
@@ -199,15 +247,16 @@ public class PartyPictures extends JFrame {
 	private class PhotoThread implements Runnable {
 
 		public void run() {
-
 			synchronized (syncObj) {
 				running = true;
 			}
-
+			System.out.println("[PhotoThread] taking photo...");
+			
 			SimpleDateFormat df = new SimpleDateFormat(fileNamePatter);
 			String filename = df.format(new Date()) + fileExt;
-			System.out.println("Filename:" + filename);
 			File pfile = new File(photoDir, filename);
+			System.out.println("[PhotoThread] to file:" + pfile);
+			
 			try {
 				Process p = Runtime.getRuntime().exec("gphoto2 --capture-image-and-download --filename=" + pfile.getAbsolutePath());
 				message = M_LAUGH;
@@ -229,38 +278,11 @@ public class PartyPictures extends JFrame {
 				repaint();
 				try { Thread.sleep(2000); } catch (InterruptedException ei) { }
 			} finally {
-
-				synchronized (syncObj) {
-					running = false;
-
-					init(saver);
-					status = Status.FULL_PHOTO;
-					repaint();
-
-					// randomize and initialize random files
-					randomPictures = photoDir.list(new FilenameFilter() {
-						@Override
-						public boolean accept(File dir, String name) {
-							return name.endsWith(fileExt);
-						}
-					});
-
-					Collections.shuffle(Arrays.asList(randomPictures), r);
-					Collections.shuffle(Arrays.asList(randomOrder), r);
-
-					saverTimer.start();
-				}
-
+				initObject();
 			}
 		}
 
-		public void init(Image[][] in) {
-			for (int i = 0; i < in.length; i++) {
-				for (int j = 0; j < in[i].length; j++) {
-					in[i][j] = null;
-				}
-			}
-		}
+
 	}
 
 	/**
