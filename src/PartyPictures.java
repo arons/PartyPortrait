@@ -32,7 +32,7 @@ public class PartyPictures extends JFrame {
 	static final long serialVersionUID = 1;
 
 	// hard coded config
-	private static boolean FULLSCREEN = false;
+	private static boolean FULLSCREEN = true;
 
 	private static final String fileNamePatter = "yyyy_MM_dd_HHmmss";
 	private static final String fileExt = ".jpg";
