@@ -1,6 +1,15 @@
+Party Pictures
+==============
+Is a tool to take picture from a camera attached to a computer.
+I use a usb pedal to trigger the photo. 
+
+My setup:
+- my old Nikon D60
+- USB foot switch (FS1-P) 
+
 Dependencies
 ============
-it requirese jdk 1.8 min. it works also with jdk 17
+It requires at least jdk 1.8. It works also with leter jdk
  # apt install openjdk-17-jdk
   
 It requires gphoto2 to be installed

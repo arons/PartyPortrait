@@ -29,14 +29,15 @@ import javax.swing.JFrame;
 import javax.swing.Timer;
 
 public class PartyPictures extends JFrame {
-
 	static final long serialVersionUID = 1;
 
 	// hard coded config
-	private static boolean FULLSCREEN = true;
+	private static boolean FULLSCREEN = false;
 
 	private static final String fileNamePatter = "yyyy_MM_dd_HHmmss";
 	private static final String fileExt = ".jpg";
+	private static Object syncObj = new Object();
+	
 
 	private Image full = null;
 	private Image[][] saver = new Image[3][3];
@@ -44,10 +45,12 @@ public class PartyPictures extends JFrame {
 	private int[][] randomOrder = null;
 	private int nextPicture = 0, nextPosition = 0;
 	private Random r = new Random(1);
+	
+	private File photoDir;
 
-	Timer saverTimer = new Timer(2000, new UpdateSaver());
+	private Timer saverTimer = new Timer(2000, new UpdateSaver());
 
-	boolean running = false;
+	private boolean running = false;
 
 	private enum Status {
 		RANDOM_COLLAGE, FULL_PHOTO, MESSAGE_DISPLAY
@@ -64,7 +67,7 @@ public class PartyPictures extends JFrame {
 	
 	private String message = M_STARTING;
 
-	private static Object syncObj = new Object();
+	
 
 	public static void main(String[] args) throws Exception {
 		new PartyPictures();
@@ -72,7 +75,11 @@ public class PartyPictures extends JFrame {
 
 	// Class constructor
 	private PartyPictures() throws MalformedURLException {
-
+		photoDir = new File("photos");
+		if(!photoDir.exists()) {
+			photoDir.mkdirs();
+		}
+		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		addMouseListener(new ExitOnMouseClickListener());
 		addKeyListener(new TakePhotoOnKeyListener());
@@ -146,32 +153,35 @@ public class PartyPictures extends JFrame {
 		
 	}
 
+	/**
+	 * Update by timer
+	 */
 	private class UpdateSaver implements ActionListener {
 
 		@Override
 		public void actionPerformed(ActionEvent e) {
+			if (randomPictures == null) return; 
+			if (randomPictures.length <= 0) return; 
+			
+			String filename = randomPictures[nextPicture++];
 
-			if (randomPictures != null && randomPictures.length > 0) {
-				String filename = randomPictures[nextPicture++];
+			int[] pos = randomOrder[nextPosition++];
+			int x = pos[0];
+			int y = pos[1];
 
-				int[] pos = randomOrder[nextPosition++];
-				int x = pos[0];
-				int y = pos[1];
+			if (nextPicture >= randomPictures.length)
+				nextPicture = 0;
 
-				if (nextPicture >= randomPictures.length)
-					nextPicture = 0;
+			if (nextPosition >= randomOrder.length)
+				nextPosition = 0;
 
-				if (nextPosition >= randomOrder.length)
-					nextPosition = 0;
+			Image img = Toolkit.getDefaultToolkit().getImage(filename);
 
-				Image img = Toolkit.getDefaultToolkit().getImage(filename);
-
-				img = img.getScaledInstance(getWidth() / saver.length, getHeight() / saver[x].length, Image.SCALE_FAST);
-				saver[x][y] = img;
-				full = null;
-				status = Status.RANDOM_COLLAGE;
-				repaint();
-			}
+			img = img.getScaledInstance(getWidth() / saver.length, getHeight() / saver[x].length, Image.SCALE_FAST);
+			saver[x][y] = img;
+			full = null;
+			status = Status.RANDOM_COLLAGE;
+			repaint();
 		}
 
 	}
@@ -193,14 +203,13 @@ public class PartyPictures extends JFrame {
 			synchronized (syncObj) {
 				running = true;
 			}
-			
-			
 
 			SimpleDateFormat df = new SimpleDateFormat(fileNamePatter);
 			String filename = df.format(new Date()) + fileExt;
 			System.out.println("Filename:" + filename);
+			File pfile = new File(photoDir, filename);
 			try {
-				Process p = Runtime.getRuntime().exec("gphoto2 --capture-image-and-download --filename=" + filename);
+				Process p = Runtime.getRuntime().exec("gphoto2 --capture-image-and-download --filename=" + pfile.getAbsolutePath());
 				message = M_LAUGH;
 				status = Status.MESSAGE_DISPLAY;
 				repaint();
@@ -211,7 +220,7 @@ public class PartyPictures extends JFrame {
 				repaint();
 				p.waitFor();
 
-				full = Toolkit.getDefaultToolkit().getImage(filename);
+				full = Toolkit.getDefaultToolkit().getImage(pfile.getAbsolutePath());
 				full = full.getScaledInstance(getWidth(), -1, Image.SCALE_FAST);
 
 			} catch (IOException | InterruptedException e) {
@@ -229,9 +238,7 @@ public class PartyPictures extends JFrame {
 					repaint();
 
 					// randomize and initialize random files
-					File f = new File(".");
-					randomPictures = f.list(new FilenameFilter() {
-
+					randomPictures = photoDir.list(new FilenameFilter() {
 						@Override
 						public boolean accept(File dir, String name) {
 							return name.endsWith(fileExt);
