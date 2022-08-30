@@ -1,4 +1,4 @@
 #!/bin/sh
 printf "Compile sources\n"
-mkdir bin
+mkdir -p bin
 javac ./src/PartyPictures.java -d ./bin
