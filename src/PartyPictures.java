@@ -32,7 +32,7 @@ public class PartyPictures extends JFrame {
 	static final long serialVersionUID = 1;
 
 	// hard coded config
-	private static boolean FULLSCREEN = false;
+	private static boolean FULLSCREEN = true;
 
 	private static final String fileNamePatter = "yyyy_MM_dd_HHmmss";
 	private static final String fileExt = ".jpg";
@@ -67,6 +67,7 @@ public class PartyPictures extends JFrame {
 	
 	private String message = M_STARTING;
 
+	private static PartyPictures INSTANCE;
 	
 
 	public static void main(String[] args) throws Exception {
@@ -76,10 +77,11 @@ public class PartyPictures extends JFrame {
 
 	// Class constructor
 	private PartyPictures() throws MalformedURLException {
+		INSTANCE = this;
 		
 		photoDir = new File("photos");
-		if(!photoDir.exists()) {
-			photoDir.mkdirs();
+		if(!INSTANCE.photoDir.exists()) {
+			INSTANCE.photoDir.mkdirs();
 		}
 		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -92,22 +94,25 @@ public class PartyPictures extends JFrame {
 		if (FULLSCREEN) {
 			GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().setFullScreenWindow(this);
 		} else {
-			this.setSize(300, 200);
+			this.setSize(600, 400);
 		}
 
 		// init random order
 		randomOrder = new int[saver.length * saver[0].length][2];
 		for (int i = 0; i < saver.length; i++) {
 			for (int j = 0; j < saver[0].length; j++) {
-				randomOrder[i * saver.length + j] = new int[] { i, j };
+				INSTANCE.randomOrder[i * saver.length + j] = new int[] { i, j };
 			}
 		}
 
-		saverTimer.start();
-		initObject();
+		initPhotoShow();
 		System.out.println("running...");
 	}
 
+	
+	/**
+	 * 
+	 */
 	public void paint(Graphics g) {
 		switch (status) {
 		case MESSAGE_DISPLAY:
@@ -189,15 +194,20 @@ public class PartyPictures extends JFrame {
 			if(Math.random() > 0.9) {
 				full = img.getScaledInstance(getWidth(), -1, Image.SCALE_FAST);
 				status = Status.FULL_PHOTO;
+				repaint();
+				
+				saverTimer.stop();
+				initPhotoShow();
+				
 			}else {
 				img = img.getScaledInstance(getWidth() / saver.length, getHeight() / saver[x].length, Image.SCALE_FAST);
 				saver[x][y] = img;
 				full = null;
 				status = Status.RANDOM_COLLAGE;
+				repaint();
 			}
 
 			
-			repaint();
 		}
 
 	}
@@ -208,18 +218,20 @@ public class PartyPictures extends JFrame {
 		}
 	}
 	
-	public void init(Image[][] in) {
-		for (int i = 0; i < in.length; i++) {
-			for (int j = 0; j < in[i].length; j++) {
-				in[i][j] = null;
-			}
-		}
-	}
-	private void initObject() {
-		System.out.println("initObject");
+	private void initPhotoShow() {
+		System.out.println("initPhotoShow");
+		
 		synchronized (syncObj) {
 			running = false;
-			init(saver);
+			
+			/*init saver */
+			for (int i = 0; i < saver.length; i++) {
+				for (int j = 0; j < saver[i].length; j++) {
+					saver[i][j] = null;
+				}
+			}
+			
+			
 			status = Status.FULL_PHOTO;
 			repaint();
 
@@ -235,9 +247,10 @@ public class PartyPictures extends JFrame {
 			Collections.shuffle(Arrays.asList(randomOrder), r);
 
 			saverTimer.start();
-			
-			System.out.println("randomPictures size:"+randomPictures.length);
 		}
+		
+		
+		System.out.println("randomPictures size:"+randomPictures.length);
 	}
 
 	/**
@@ -245,11 +258,11 @@ public class PartyPictures extends JFrame {
 	 *
 	 */
 	private class PhotoThread implements Runnable {
-
 		public void run() {
 			synchronized (syncObj) {
 				running = true;
 			}
+			
 			System.out.println("[PhotoThread] taking photo...");
 			
 			SimpleDateFormat df = new SimpleDateFormat(fileNamePatter);
@@ -275,10 +288,11 @@ public class PartyPictures extends JFrame {
 			} catch (IOException | InterruptedException e) {
 				e.printStackTrace();
 				message = "Error:"+e.getMessage();
+				status = Status.MESSAGE_DISPLAY;
 				repaint();
 				try { Thread.sleep(2000); } catch (InterruptedException ei) { }
 			} finally {
-				initObject();
+				initPhotoShow();
 			}
 		}
 
