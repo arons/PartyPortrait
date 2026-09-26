@@ -14,9 +14,11 @@ import java.awt.event.MouseEvent;
 import java.awt.font.FontRenderContext;
 import java.awt.font.TextLayout;
 import java.awt.geom.Rectangle2D;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -34,6 +36,11 @@ public class PartyPictures extends JFrame {
 
 	// hard coded config
 	private static boolean FULLSCREEN = true;
+
+	// gphoto2 command; override with env GPHOTO2_CMD or -DGPHOTO2_CMD (default works for Nikon D60 and Canon EOS)
+	private static final String DEFAULT_GPHOTO2_CMD = "gphoto2 --force-overwrite --capture-image-and-download";
+	private static final String gphoto2Cmd = System.getProperty("GPHOTO2_CMD",
+			System.getenv().getOrDefault("GPHOTO2_CMD", DEFAULT_GPHOTO2_CMD));
 
 	private static final String fileNamePatter = "yyyy_MM_dd_HHmmss";
 	private static final String fileExt = ".jpg";
@@ -284,9 +291,20 @@ public class PartyPictures extends JFrame {
 			String filename = df.format(new Date()) + fileExt;
 			File pfile = new File(photoDir, filename);
 			System.out.println("[PhotoThread] to file:" + pfile);
+			System.out.println("[PhotoThread] cmd:" + gphoto2Cmd);
 			
 			try {
-				Process p = Runtime.getRuntime().exec("gphoto2 --capture-image-and-download --filename=" + pfile.getAbsolutePath());
+				Process p = new ProcessBuilder((gphoto2Cmd + " --filename=" + pfile.getAbsolutePath()).split("\\s+"))
+						.redirectErrorStream(true).start();
+				BufferedReader out = new BufferedReader(new InputStreamReader(p.getInputStream()));
+
+				StringBuilder sb = new StringBuilder();
+				String line;
+				while ((line = out.readLine()) != null) {
+					sb.append(line).append('\n');
+					System.out.println("[gphoto2] " + line);
+				}
+
 				message = M_LAUGH;
 				status = Status.MESSAGE_DISPLAY;
 				repaint();
@@ -295,7 +313,13 @@ public class PartyPictures extends JFrame {
 				
 				message = M_WAIT;
 				repaint();
-				p.waitFor();
+				int rc = p.waitFor();
+				System.out.println("[PhotoThread] gphoto2 exit code: " + rc);
+
+				if (rc != 0 || !pfile.exists()) {
+					// capture failed (e.g. camera busy, USB timeout, EOS PTP error)
+					throw new IOException("gphoto2 failed (rc=" + rc + "): " + sb.toString().trim());
+				}
 
 				full = Toolkit.getDefaultToolkit().getImage(pfile.getAbsolutePath());
 				full = full.getScaledInstance(getWidth(), -1, Image.SCALE_FAST);
@@ -303,6 +327,7 @@ public class PartyPictures extends JFrame {
 			} catch (IOException | InterruptedException e) {
 				e.printStackTrace();
 				message = "Error:"+e.getMessage();
+				if (message.length() > 120) message = message.substring(0, 120) + "...";
 				status = Status.MESSAGE_DISPLAY;
 				repaint();
 				try { Thread.sleep(2000); } catch (InterruptedException ei) { }

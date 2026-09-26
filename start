@@ -1,4 +1,11 @@
 #!/bin/sh
+# Stop the desktop file manager from grabbing the camera (gvfs-gphoto2-volume-monitor),
+# otherwise gphoto2 fails with "Could not claim the USB device" (Error -53).
+if pkill -f gvfs-gphoto2-volume-monitor 2>/dev/null; then
+  echo "Stopped gvfs-gphoto2-volume-monitor"
+fi
+export GIO_USE_VOLUME_MONITOR=unix
+
 while true; do
   echo -n "Starting..."
   java -cp ./bin PartyPictures

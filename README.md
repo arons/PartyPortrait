@@ -40,7 +40,7 @@ Photos are stored as `photos/yyyy_MM_dd_HHmmss.jpg`.
   apt install gphoto2
   ```
 
-- A camera supported by gphoto2, connected via USB (my setup: old Nikon D60)
+- A camera supported by gphoto2, connected via USB
 - A USB foot switch (my setup: FS1-P) configured to emit a key press
 - An X11/display environment (Java Swing fullscreen)
 
