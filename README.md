@@ -60,6 +60,28 @@ Compiles `src/PartyPictures.java` into `bin/`.
 
 Starts the app in a loop, restarting it after 5 seconds if it exits.
 
+## Install & Run from GitHub
+
+A one-shot script downloads the prebuilt jar from GitHub Releases (falls back to cloning and compiling the source), then runs it:
+
+```sh
+./install-and-run.sh <owner>/PartyPortrait            # latest release
+./install-and-run.sh <owner>/PartyPortrait v1.0.0     # specific tag
+```
+
+The jar is stored in `~/.local/PartyPortrait/` with a `photos/` folder next to it.
+
+### Releasing a version
+
+Push a tag to trigger the GitHub Actions release workflow (`.github/workflows/release.yml`):
+
+```sh
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+The workflow compiles the code, packages `PartyPortrait.jar` and attaches it to a GitHub Release with auto-generated notes.
+
 ## Usage
 
 1. Connect the camera via USB and the USB foot switch

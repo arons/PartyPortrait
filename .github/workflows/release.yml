@@ -1,0 +1,37 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Compile
+        run: |
+          mkdir -p bin
+          javac ./src/PartyPictures.java -d ./bin
+
+      - name: Package jar
+        run: |
+          mkdir -p dist
+          jar --create --file dist/PartyPortrait.jar --main-class PartyPictures -C bin .
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/PartyPortrait.jar
+          generate_release_notes: true

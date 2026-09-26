@@ -1,4 +1,3 @@
-
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -30,6 +29,8 @@ import javax.swing.Timer;
 
 public class PartyPictures extends JFrame {
 	static final long serialVersionUID = 1;
+
+	public static final String VERSION = "1.1.0";
 
 	// hard coded config
 	private static boolean FULLSCREEN = true;
@@ -74,7 +75,18 @@ public class PartyPictures extends JFrame {
 	
 
 	public static void main(String[] args) throws Exception {
-		System.out.println("Starting Party Pictures");
+		for (String arg : args) {
+			if ("-v".equals(arg) || "--version".equals(arg)) {
+				System.out.println("PartyPortrait " + VERSION);
+				return;
+			}
+			if ("-h".equals(arg) || "--help".equals(arg)) {
+				System.out.println("Usage: java PartyPictures [-v|--version] [-h|--help]");
+				System.out.println("  -v, --version   print version and exit");
+				return;
+			}
+		}
+		System.out.println("Starting Party Pictures " + VERSION);
 		new PartyPictures();
 	}
 
