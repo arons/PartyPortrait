@@ -65,7 +65,7 @@ Starts the app in a loop, restarting it after 5 seconds if it exits.
 Run the app directly from the latest GitHub release artifact — no repo download needed:
 
 ```sh
-mkdir -p ~/.local/PartyPortrait/photos && curl -fsSL https://github.com/<OWNER>/PartyPortrait/releases/latest/download/PartyPortrait.jar -o ~/.local/PartyPortrait/PartyPortrait.jar && exec java -jar ~/.local/PartyPortrait/PartyPortrait.jar
+mkdir -p ~/.local/PartyPortrait/photos && curl -fsSL https://github.com/arons/PartyPortrait/releases/latest/download/PartyPortrait.jar -o ~/.local/PartyPortrait/PartyPortrait.jar && exec java -jar ~/.local/PartyPortrait/PartyPortrait.jar
 ```
 
 This downloads the prebuilt jar from GitHub Releases and starts it (photos are saved in `~/.local/PartyPortrait/photos/`).
