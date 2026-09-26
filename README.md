@@ -10,7 +10,7 @@ My setup:
 Dependencies
 ============
 It requires at least jdk 1.8. It works also with leter jdk
- # apt install openjdk-17-jdk
+ apt install openjdk-25-jdk
   
 It requires gphoto2 to be installed
- # apt install gphoto2
+ apt install gphoto2
