@@ -28,10 +28,10 @@ Photos are stored as `photos/yyyy_MM_dd_HHmmss.jpg`.
 
 ## Requirements
 
-- **JDK 1.8 or later** (works with newer JDKs too)
+- **JDK 21**
 
   ```sh
-  apt install openjdk-25-jdk
+  apt install openjdk-21-jdk
   ```
 
 - **gphoto2** — for camera control
@@ -60,16 +60,15 @@ Compiles `src/PartyPictures.java` into `bin/`.
 
 Starts the app in a loop, restarting it after 5 seconds if it exits.
 
-## Install & Run from GitHub
+## One-liner Run
 
-A one-shot script downloads the prebuilt jar from GitHub Releases (falls back to cloning and compiling the source), then runs it:
+Run the app directly from the latest GitHub release artifact — no repo download needed:
 
 ```sh
-./install-and-run.sh <owner>/PartyPortrait            # latest release
-./install-and-run.sh <owner>/PartyPortrait v1.0.0     # specific tag
+mkdir -p ~/.local/PartyPortrait/photos && curl -fsSL https://github.com/<OWNER>/PartyPortrait/releases/latest/download/PartyPortrait.jar -o ~/.local/PartyPortrait/PartyPortrait.jar && exec java -jar ~/.local/PartyPortrait/PartyPortrait.jar
 ```
 
-The jar is stored in `~/.local/PartyPortrait/` with a `photos/` folder next to it.
+This downloads the prebuilt jar from GitHub Releases and starts it (photos are saved in `~/.local/PartyPortrait/photos/`).
 
 ### Releasing a version
 
